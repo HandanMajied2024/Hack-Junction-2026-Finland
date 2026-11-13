@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Junction 2026 Wins</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root { --fg:#000; --bg:#fff; --mute:#555; --line:#000; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; overflow:hidden; background:var(--bg); color:var(--fg);
+    font-family:Inter, system-ui, sans-serif; -webkit-font-smoothing:antialiased; }
+  body { display:flex; flex-direction:column; padding:12px 16px; gap:8px; }
+
+  header { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  h1 { display:flex; align-items:center; }
+  h1 img { height:20px; }
+  .tabs { display:flex; gap:4px; }
+  .tab { border:1px solid var(--line); background:var(--bg); color:var(--fg); font:inherit;
+    font-size:13px; font-weight:500; padding:5px 12px; cursor:pointer; white-space:nowrap; }
+  .tab[aria-selected="true"] { background:var(--fg); color:var(--bg); }
+  .sep { width:1px; height:22px; background:#000; }
+  .meta { margin-left:auto; font-size:12px; color:var(--mute); }
+
+  main { flex:1; min-height:0; position:relative; }
+  .view { position:absolute; inset:0; display:none; flex-direction:column; gap:6px; }
+  .view.on { display:flex; }
+  .inv { filter:brightness(0); }
+
+  /* Treemap */
+  .map { flex:1; min-height:0; position:relative; }
+  .group { position:absolute; }
+  .ghead { position:absolute; left:0; right:0; top:0; height:18px; font-size:11px; font-weight:900;
+    text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; overflow:hidden; }
+  .ghead span { font-weight:500; color:var(--mute); }
+  .box { position:absolute; border:1.5px solid var(--line); padding:8px 10px; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:space-between; }
+  .box.est { border-style:dashed; }
+  .price { font-weight:900; letter-spacing:-.03em; line-height:1; white-space:nowrap; overflow:hidden; flex-shrink:0; }
+  .name { font-weight:700; line-height:1.15; }
+  .sub { color:var(--mute); line-height:1.3; margin-top:2px; }
+  .logos { display:flex; align-items:center; gap:10px; margin-bottom:5px; }
+  .logo { display:block; width:auto; max-width:100%; object-fit:contain; object-position:left center; min-width:0; }
+  .box.multi { justify-content:flex-start; gap:5px; padding:6px; }
+  .mini { flex:1; min-height:0; display:grid; grid-auto-rows:1fr; gap:3px; }
+  .cell { border:1px solid #000; padding:4px 6px; overflow:hidden; min-height:0; min-width:0;
+    display:flex; flex-direction:column; justify-content:space-between; gap:3px; }
+  .legend, .rules { font-size:11px; color:var(--mute); display:flex; gap:4px 14px; flex-wrap:wrap; }
+  .rules b { color:#000; }
+  .legend i { display:inline-block; width:14px; height:9px; border:1.5px solid #000; vertical-align:-1px; margin-right:5px; }
+  .legend i.d { border-style:dashed; }
+
+  /* Tools */
+  .grid { flex:1; min-height:0; display:grid; gap:5px; }
+  #sw { grid-template-columns:repeat(7, 1fr); grid-auto-rows:1fr; }
+  #hw { grid-template-columns:repeat(5, 1fr); grid-auto-rows:1fr; }
+  .card { border:1.5px solid var(--line); padding:8px 10px; overflow:hidden; display:flex; flex-direction:column; gap:3px; min-height:0; min-width:0; }
+  .card .logo { height:clamp(13px, 2.2vh, 22px); margin-bottom:3px; }
+  .card b { font-size:clamp(12px, 1.05vw, 15px); font-weight:900; }
+  .card p { font-size:clamp(10px, .8vw, 12px); line-height:1.3; color:#333; }
+  .card .free { font-size:clamp(12px, 1.1vw, 17px); font-weight:900; letter-spacing:-.01em; line-height:1.15; }
+  .card .tag { margin-top:auto; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--mute); }
+  .card.hot { border-width:3.5px; }
+  #hw .card .logo { height:clamp(18px, 3.5vh, 38px); }
+  #hw .card b { font-size:clamp(15px, 1.7vw, 24px); }
+  #hw .card p { font-size:clamp(11px, .95vw, 14px); }
+
+  @media (max-width: 900px) {
+    #sw { grid-template-columns:repeat(5, 1fr); }
+    #hw { grid-template-columns:repeat(3, 1fr); }
+    .card p { display:none; }
+    .rules { display:none; }
+  }
+  @media (max-width: 560px) {
+    #sw { grid-template-columns:repeat(3, 1fr); }
+    #hw { grid-template-columns:repeat(2, 1fr); }
+    .meta, .legend { display:none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1><img class="inv" src="logos/junction_wordmark_logo_-_white_no_background.webp" alt="Junction 2026"></h1>
+  <div class="tabs">
+    <button class="tab" data-view="wins" aria-selected="true">Wins</button>
+    <button class="tab" data-view="tools" aria-selected="false">Tools</button>
+  </div>
+  <span class="sep"></span>
+  <div class="tabs" id="subWins">
+    <button class="tab" data-sub="main" aria-selected="true">Main Challenges · pick ≥1</button>
+    <button class="tab" data-sub="tech" aria-selected="false">Tech Challenges · stack on top</button>
+  </div>
+  <div class="tabs" id="subTools" style="display:none">
+    <button class="tab" data-sub="sw" aria-selected="true">Software · free credits</button>
+    <button class="tab" data-sub="hw" aria-selected="false">Hardware</button>
+  </div>
+  <span class="meta">Nov 13–15, 2026 · Hype Areena, Espoo · €100,000 pool</span>
+</header>
+
+<main>
+  <section class="view on" id="wins">
+    <div class="map" id="map"></div>
+    <div class="legend">
+      <span>Area = total prize value of the challenge (1st+2nd+3rd) · big = 1st place</span>
+      <span><i></i>Cash / credits as published</span>
+      <span><i class="d"></i>Contains items – € value estimated (team of 4)</span>
+      <span>$ → € at 0.86 for sizing · tiny prizes raised to a minimum size</span>
+    </div>
+    <div class="rules">
+      <span><b>To win:</b> no code written before the event</span><span>team 1–4</span><span>≥1 Main Challenge</span>
+      <span>pitch video ≤2 min</span><span>source link, MIT licence</span><span><b>DRAFT → FINAL before Sun 10:00</b></span>
+      <span><b>Overall prize: whole team at peer review Sun 10:30</b></span>
+    </div>
+  </section>
+
+  <section class="view" id="tools">
+    <div class="grid" id="sw"></div>
+    <div class="grid" id="hw" style="display:none"></div>
+    <div class="legend" id="toolfoot"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- LOGOS ---------- [file, invert white→black] */
+const L = {
+  junction:["junction_wordmark_logo_-_white_no_background.webp",1], deepmind:["google-deepmind-white.png",1],
+  arduino:["arduino.png",1], verda:["verda.png",1], cala:["cala.png",1], exa:["exa.png",1],
+  hostinger:["hostinger.png",1], intel:["intel.png",1], ignitenext:["ignite-next.png",1], mariadb:["mariadb.png",1],
+  rokoko:["rokoko.png",1], contextdev:["context-dev.png",1], aiven:["aiven.png",1], cloudinary:["cloudinary.png",1],
+  featherless:["featherless.png",1], modal:["modal.png",1], nvidia:["nvidia.png",1], codex:["openai-codex.svg",1],
+  oxylabs:["oxylabs.png",1], tieto:["tieto.png",1], bahn:["bahn.png",1], afterquery:["afterquery.png",1],
+  valioaimo:["valio-aimo.png",1], astrazeneca:["astrazeneca.png",1], aalto:["aalto-university.png",1],
+  stoa:["stoa.png",1], spankki:["s-pankki.png",1], espoo:["espoo.png",1], meta:["meta.png",1],
+  craci:["craci.png",1], atech:["atech.png",1], ironshard:["ironshard.png",1], wendy:["wendy.png",1],
+  qualia:["qualia.png",1], scailab:["scailab.png",1],
+  mlh:["mlh-color.svg",0], gemini:["gemini.png",0], elevenlabs:["elevenlabs.png",0], entire:["entire.png",0],
+  solana:["solana.png",0], tigerdata:["tigerdata.png",0], vultr:["vultr.png",0], dev:["dev.png",0], mongodb:["mongodb.png",0],
+};
+const img = (k, alt = k) => L[k] ? `<img class="logo${L[k][1] ? " inv" : ""}" src="logos/${L[k][0]}" alt="${alt}">` : "";
+
+/* ---------- DATA (Junction Platform, 13.11.2026) ----------
+   v = total € value (1st+2nd+3rd) for area · est = item values estimated */
+const MAIN = [
+  { track:"Agentic AI Track", items:[
+    { v:12400, est:1, first:"$2,500", logos:["exa"], name:"The Internet Butler", rest:"+ $5k Exa credits, hoodies, TRMNL · 2nd $1,500 + $3k cr · 3rd $500 + $1k cr" },
+    { v:7000,  first:"€4,000", logos:["valioaimo"], name:"Trusted Trade Agents", rest:"2nd €2,000 · 3rd €1,000" },
+    { v:6500,  est:1, first:"~€5,000", logos:["cala"], name:"Make Unicorns Real", rest:"3 months of hackathons per member (travel + hotel) + €1k credits + merch · 2nd €500 credits" },
+    { v:5000,  first:"€3,000", logos:["afterquery"], name:"Break the Agent", rest:"+ work trial + merch · 2nd €1,500 · 3rd €500" },
+    { v:3500,  first:"€2,000", logos:["tieto"], name:"Earned Trust in AI Code", rest:"2nd €1,000 · 3rd €500" },
+    { v:3500,  first:"€2,000", logos:["bahn"], name:"Spread", rest:"2nd €1,000 · 3rd €500" },
+    { v:3000,  first:"€2,000", logos:["hostinger"], name:"Decode the Noise", rest:"2nd €1,000 · all winners: 1 yr hosting + domain + swag" },
+  ]},
+  { track:"Hardware Track", items:[
+    { v:10000, first:"€5,000", logos:["ignitenext","intel"], name:"Intel Physical AI Challenge", rest:"2nd €3,000 · 3rd €2,000" },
+    { v:8380,  first:"€4,990", logos:["rokoko"], name:"Robot Teleoperation", rest:"Smartgloves II + SDK · 2nd Smartsuit Pro II (€2,295) · 3rd Smartgloves I (€1,095)" },
+    { v:2000,  first:"€2,000", logos:["aalto"], name:"Aaltonomous Humanoid", rest:"+ robotics lab visit · top ~5 run live on a real Unitree G1" },
+    { v:1960,  est:1, first:"Ventuno Q ×4", logos:["arduino"], name:"Green European Renaissance", rest:"per member · 2nd UNO Q 4G + kit · 3rd Plug and Make kit" },
+    { v:1320,  est:1, first:"Ray-Ban Meta ×4", logos:["meta"], name:"AI Glasses for Everyone", rest:"one pair per member" },
+  ]},
+  { track:"Data Track", items:[
+    { v:5330, est:1, first:"€1,000", logos:["mariadb"], name:"Wikipedia Through Time", rest:"+ €1k UpCloud + certification/member ($750) · 2nd €500 · 3rd €250" },
+    { v:3000, first:"€1,500", logos:["espoo"], name:"Rethinking Recruitment", rest:"2nd €1,000 · 3rd €500" },
+    { v:2500, first:"€2,000", logos:["contextdev"], name:"The Web Is Your Real-Time Database", rest:"+ swag · 2nd €500 · 3rd swag" },
+  ]},
+  { track:"Overall", items:[
+    { v:10000, first:"€10,000", logos:["junction"], name:"Junction 2026 Overall Winner", rest:"Top 5 by peer review Sun → 3 min pitch + 3 min Q&A → 7 judges · whole team must be at peer review" },
+  ]},
+  { track:"Healthcare Track", items:[
+    { v:2000, first:"€2,000", logos:["aalto"], name:"Beyond the Clinic", rest:"+ brain stimulation lab visit · best idea developed with researchers" },
+    { v:2000, first:"€1,000", logos:["astrazeneca"], name:"Equal Care Across Finland", rest:"2nd €750 · 3rd €250" },
+  ]},
+  { track:"FinTech Track", items:[
+    { v:3500, first:"€2,000", logos:["spankki"], name:"Personal Economic Trainer", rest:"Airbnb vouchers · 2nd €1,000 · 3rd €500" },
+  ]},
+  { track:"AI Infra Track", items:[
+    { v:2000, first:"€1,000", logos:["stoa"], name:"Make Blueprints Talk", rest:"+ work trial · 2nd €750 · 3rd €250" },
+  ]},
+];
+const TECH = [
+  { track:"", items:[
+    { v:15050, first:"$10,000", logos:["codex"], name:"Best Use of Codex", rest:"API credits · 2nd $5,000 · 3rd $2,500" },
+    { v:12900, first:"$10,000", logos:["verda"], name:"Verda Compute Track", rest:"cloud credits + hoodies · 2nd $2,500 · 3rd $2,500" },
+    { v:10440, first:"€4,000", logos:["deepmind"], name:"Best Use of Gemini API", rest:"+ $1k Google Cloud credits/member · 2nd €2,000 · 3rd €1,000" },
+    { v:4300,  first:"$2,000", logos:["modal"], name:"Best Use of Modal", rest:"+ $3,000 Modal credits" },
+    { v:3000,  first:"€1,000 ×3", logos:["deepmind"], name:"Best Use of Gemma", rest:"€1,000 to each of the top 3 teams, no ranking" },
+    { v:2720,  first:"€1,000", logos:["oxylabs"], name:"Agentic use of Oxylabs Web API", rest:"Apple voucher + $500 credits per member" },
+    { v:2300,  est:1, first:"RTX 5080", logos:["nvidia"], name:"Best Use of Nemotron", rest:"one each for the top 2 teams" },
+    { v:2250,  first:"€1,000", logos:["aiven"], name:"Best Use of Aiven", rest:"2nd €750 · 3rd €500" },
+    { v:1720,  first:"$500 ×4", logos:["cloudinary"], name:"Best Use of Cloudinary", rest:"Amazon vouchers, per member" },
+    { v:1100,  est:1, first:"MLH", logos:["mlh"], name:"MLH · 8 item prizes", list:[
+        ["IoT Kit ×4", "mongodb"], ["HW Wallet ×4", "solana"], ["Mini Projector", "entire"], ["Stream Deck Mini", "tigerdata"],
+        ["Earbuds", "elevenlabs"], ["Mini Monitor", "vultr"], ["$100", "dev"], ["Swag Kits", "gemini"] ] },
+    { v:1000,  first:"€750", logos:["contextdev"], name:"Best Use of Context.dev", rest:"+ swag · 2nd €250 · 3rd swag" },
+    { v:600,   est:1, first:"UNO Q + kit ×4", logos:["arduino"], name:"Best use of Arduino UNO Q", rest:"per member" },
+    { v:500,   est:1, first:"Pro Atech Kit", logos:["atech"], name:"Atech Real World Challenge", rest:"2nd/3rd kits + swag · invite to Copenhagen" },
+    { v:340,   est:1, first:"LEGO ×4", logos:["craci"], name:"Best use of CRACI", rest:"2nd Red Bull 24-pack/member · 3rd CRACI × OpenAI lunch at Slush" },
+  ]},
+];
+
+/* ---------- TREEMAP ---------- */
+function worst(row, side, scale) {
+  const s = row.reduce((a, b) => a + b.a, 0) * scale;
+  let mx = 0, mn = Infinity;
+  for (const r of row) { const x = r.a * scale; mx = Math.max(mx, x); mn = Math.min(mn, x); }
+  return Math.max(side * side * mx / (s * s), (s * s) / (side * side * mn));
+}
+function squarify(items, x, y, w, h, out = []) {
+  if (!items.length) return out;
+  if (items.length === 1) { out.push({ it: items[0], x, y, w, h }); return out; }
+  const total = items.reduce((s, i) => s + i.a, 0), scale = (w * h) / total, side = Math.min(w, h);
+  let row = [], best = Infinity, i = 0;
+  while (i < items.length) {
+    const cand = [...row, items[i]], r = worst(cand, side, scale);
+    if (r <= best) { row = cand; best = r; i++; } else break;
+  }
+  const ra = row.reduce((s, a) => s + a.a, 0) * scale;
+  if (w >= h) {
+    const cw = ra / h; let cy = y;
+    for (const it of row) { const ih = it.a * scale / cw; out.push({ it, x, y: cy, w: cw, h: ih }); cy += ih; }
+    return squarify(items.slice(i), x + cw, y, w - cw, h, out);
+  }
+  const rh = ra / w; let cx = x;
+  for (const it of row) { const iw = it.a * scale / rh; out.push({ it, x: cx, y, w: iw, h: rh }); cx += iw; }
+  return squarify(items.slice(i), x, y + rh, w, h - rh, out);
+}
+
+function fit(d, pf, nf, sf, lh) {
+  const price = d.querySelector(".price"), name = d.querySelector(".name");
+  const small = d.querySelectorAll(".sub"), logos = d.querySelectorAll(".logo");
+  for (let k = 1, i = 0; i < 45; i++, k *= 0.92) {
+    if (price) price.style.fontSize = Math.max(9, pf * k) + "px";
+    if (name) name.style.fontSize = Math.max(9, nf * Math.min(1, k * 1.4)) + "px";
+    small.forEach(e => e.style.fontSize = Math.max(8, sf * Math.min(1, k * 1.6)) + "px");
+    logos.forEach(e => e.style.height = Math.max(9, lh * Math.min(1, k * 1.2)) + "px");
+    if ((!price || price.scrollWidth <= price.clientWidth + 1) && d.scrollHeight <= d.clientHeight + 1) break;
+  }
+}
+const eur = n => "€" + Math.round(n).toLocaleString("en-US");
+
+function renderBox(parent, it, x, y, w, h) {
+  const d = document.createElement("div");
+  d.className = "box" + (it.est ? " est" : "");
+  Object.assign(d.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px" });
+  const s = Math.sqrt(w * h);
+  if (it.list) {
+    const cols = w > h * 1.3 ? 4 : 2;
+    d.classList.add("multi");
+    d.innerHTML = `<div style="display:flex;align-items:center;gap:6px">${img("mlh")}<div class="name">${it.name}</div></div>` +
+      `<div class="mini" style="grid-template-columns:repeat(${cols},1fr)">` +
+      it.list.map(([p, k]) => `<div class="cell"><div class="price">${p}</div><div>${img(k)}</div></div>`).join("") + `</div>`;
+    parent.appendChild(d);
+    const hd = d.firstElementChild;
+    hd.querySelector(".logo").style.height = Math.max(12, Math.min(22, s / 16)) + "px";
+    hd.querySelector(".name").style.fontSize = Math.max(10, Math.min(14, s / 20)) + "px";
+    d.querySelectorAll(".cell").forEach(c => {
+      const cs = Math.sqrt(c.clientWidth * c.clientHeight);
+      fit(c, Math.min(40, cs / 2.6), 0, 0, Math.min(30, cs / 5));
+    });
+    return;
+  }
+  d.innerHTML = `<div class="price">${it.first}</div><div><div class="logos">${it.logos.map(k => img(k)).join("")}</div>` +
+    `<div class="name">${it.name}</div>` + (it.rest ? `<div class="sub">${it.rest}</div>` : "") + `</div>`;
+  parent.appendChild(d);
+  fit(d, Math.min(100, s / 3.4), Math.min(22, s / 12), Math.min(14, s / 20), Math.min(48, s / 7));
+}
+
+function draw(groups) {
+  const el = document.getElementById("map"), W = el.clientWidth, H = el.clientHeight, G = 4, HD = 20;
+  if (!W || !H) return;
+  el.innerHTML = "";
+  const grand = groups.reduce((s, g) => s + g.items.reduce((a, i) => a + i.v, 0), 0);
+  const floor = grand * 0.022;                                  // min area so small prizes stay readable
+  const gs = groups.map(g => {
+    const items = g.items.map(i => ({ ...i, a: Math.max(i.v, floor) })).sort((a, b) => b.a - a.a);
+    return { ...g, items, sum: g.items.reduce((a, i) => a + i.v, 0), a: items.reduce((s, i) => s + i.a, 0) };
+  }).sort((a, b) => b.a - a.a);
+  const nested = gs.length > 1;
+  for (const gr of squarify(gs, 0, 0, W + G, H + G)) {
+    const g = gr.it, gx = gr.x, gy = gr.y, gw = gr.w - G, gh = gr.h - G;
+    const top = nested ? HD : 0;
+    if (nested) {
+      const hd = document.createElement("div");
+      hd.className = "ghead";
+      Object.assign(hd.style, { left: gx + "px", top: gy + "px", width: gw + "px" });
+      hd.innerHTML = `${g.track} <span>· ${eur(g.sum)}</span>`;
+      el.appendChild(hd);
+    }
+    for (const b of squarify(g.items, gx, gy + top, gw + G, gh - top + G))
+      renderBox(el, b.it, b.x, b.y, b.w - G, b.h - G);
+  }
+}
+
+/* ---------- TOOLS ---------- [logo, name, FREE for everyone, prize/notes, prize-tied] */
+const SW = [
+  ["contextdev", "Context.dev", "50,000 API credits / team", "No expiry · prizes in Data Track + tech challenge", 1],
+  ["craci", "CRACI", "€1,000 credits / team", "Platform credits · tech challenge (LEGO, Red Bull)", 1],
+  ["verda", "Verda", "€200 credits", "AI compute + Inference API · $15k tech challenge", 1],
+  ["codex", "OpenAI Codex", "$100 / person", "Codex credits · $17.5k tech challenge", 1],
+  ["modal", "Modal", "$100 / person", "CPUs + GPUs · $2k + $3k credits prize", 1],
+  ["exa", "Exa", "$50 / person", "AI search API · Internet Butler challenge", 1],
+  ["aiven", "Aiven", "$50 credits", "Managed Postgres, Kafka … · €2,250 prizes", 1],
+  ["featherless", "Featherless", "$50 API voucher", "Open-source LLMs · selected teams get GPU credits", 0],
+  ["", "Anthropic · Claude", "$20 / person", "Claude API credits", 0],
+  ["deepmind", "Google DeepMind", "Gemini API credits", "For eligible participants · Gemini + Gemma prizes", 1],
+  ["oxylabs", "Oxylabs", "1st month free", "$500 plan, code JUNCTION2026 · card needed, cancel after!", 1],
+  ["cloudinary", "Cloudinary", "Free access", "Image & video API · $500/member Amazon vouchers", 1],
+  ["mariadb", "MariaDB", "Free access", "Database · Wikipedia Through Time challenge", 1],
+  ["nvidia", "NVIDIA Nemotron", "—", "Open models · RTX 5080 for top 2", 1],
+  ["ironshard", "IronShard", "Free access", "Free tier", 0],
+  ["wendy", "Wendy", "Free access", "Free tier", 0],
+  ["qualia", "Qualia", "Free access", "Free tier", 0],
+  ["scailab", "Scailab", "Free access", "Free tier", 0],
+  ["cala", "Cala", "API", "Public data for AI agents · Make Unicorns Real", 1],
+  ["hostinger", "Hostinger", "—", "Hosting · winners get 1 yr hosting + domain", 1],
+  ["mongodb", "MongoDB Atlas", "Free tier", "MLH prize · M5Stack IoT kit/member", 1],
+  ["solana", "Solana", "—", "MLH prize · HW wallet/member", 1],
+  ["tigerdata", "Tiger Data", "Free tier", "MLH prize · Stream Deck Mini", 1],
+  ["elevenlabs", "ElevenLabs", "—", "Voice API · MLH prize earbuds", 1],
+  ["vultr", "Vultr", "—", "Cloud · MLH prize mini monitor", 1],
+  ["entire", "Entire", "—", "MLH prize · mini projector", 1],
+  ["dev", "DEV", "—", "Write about your project · $100", 1],
+  ["junction", "Junction Platform", "Hackerpacks", "Redeem all credits here · submit DRAFT → FINAL", 0],
+];
+const HW = [
+  ["arduino", "Arduino UNO Q", "Linux + real-time control on one board, run edge AI locally · borrow at the Hardware Lab", "Hardware Lab · 5th floor", 1],
+  ["aalto", "Unitree G1 humanoid", "Top ~5 teams of the Aaltonomous Humanoid sim challenge run live on the real robot", "Aalto challenge", 1],
+  ["rokoko", "Rokoko Smartgloves / Smartsuit", "Robot Teleoperation challenge · prizes up to €4,990", "Rokoko challenge", 1],
+  ["meta", "Ray-Ban Meta glasses", "AI Glasses for Everyone, Everyday · winners get a pair each", "Meta challenge", 1],
+  ["intel", "Intel Core Ultra · OpenVINO", "Physical AI / robotics · €5k / €3k / €2k challenge", "Intel × Ignite Next", 1],
+  ["arduino", "LeRobot arms", "Open-source robot arms for robotics & embodied AI", "Hardware Lab", 0],
+  ["arduino", "Modulino sensors", "Plug-in sensors for the UNO Q", "Hardware Lab", 0],
+  ["arduino", "3D printers", "Print enclosures, mounts, custom parts on site", "Hardware Lab", 0],
+  ["nvidia", "RTX 5080", "Prize for top 2 Nemotron teams", "NVIDIA prize", 0],
+  ["atech", "Atech kits", "Atech Real World Challenge · best teams invited to Copenhagen", "Atech challenge", 0],
+];
+document.getElementById("sw").innerHTML = SW.map(([l, n, free, p, hot]) =>
+  `<div class="card${hot ? " hot" : ""}">${l ? img(l, n) : ""}<b>${n}</b><div class="free">${free}</div><p>${p}</p></div>`).join("");
+document.getElementById("hw").innerHTML = HW.map(([l, n, p, t, hot]) =>
+  `<div class="card${hot ? " hot" : ""}">${img(l, n)}<b>${n}</b><p>${p}</p><span class="tag">${t}</span></div>`).join("");
+const FOOT = {
+  sw: "Big text = free for every participant · thick border = there's also a prize for using it · redeem on the Junction Platform → Hackerpacks.",
+  hw: "Hardware Lab by Arduino · 5th floor, Hype Areena · borrow hardware for free · thick border = linked to a challenge.",
+};
+
+/* ---------- TABS ---------- */
+const state = { view: "wins", wins: "main", tools: "sw" };
+function render() {
+  document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-selected", b.dataset.view === state.view));
+  document.querySelectorAll(".view").forEach(v => v.classList.toggle("on", v.id === state.view));
+  document.getElementById("subWins").style.display = state.view === "wins" ? "flex" : "none";
+  document.getElementById("subTools").style.display = state.view === "tools" ? "flex" : "none";
+  document.querySelectorAll("#subWins [data-sub]").forEach(b => b.setAttribute("aria-selected", b.dataset.sub === state.wins));
+  document.querySelectorAll("#subTools [data-sub]").forEach(b => b.setAttribute("aria-selected", b.dataset.sub === state.tools));
+  ["sw", "hw"].forEach(k => document.getElementById(k).style.display = k === state.tools ? "grid" : "none");
+  document.getElementById("toolfoot").textContent = FOOT[state.tools];
+  if (state.view === "wins") draw(state.wins === "main" ? MAIN : TECH);
+}
+document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => { state.view = b.dataset.view; render(); });
+document.querySelectorAll("#subWins [data-sub]").forEach(b => b.onclick = () => { state.wins = b.dataset.sub; render(); });
+document.querySelectorAll("#subTools [data-sub]").forEach(b => b.onclick = () => { state.tools = b.dataset.sub; render(); });
+
+addEventListener("resize", render);
+addEventListener("load", render);
+if (document.fonts) document.fonts.ready.then(render);
+render();
+</script>
+</body>
+</html>
