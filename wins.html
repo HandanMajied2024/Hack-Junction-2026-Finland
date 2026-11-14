@@ -287,6 +287,41 @@
   #tip .ex { margin-top:6px; padding-top:6px; border-top:1px solid #555; }
   #tip .ex::before { content:"Example for us: "; font-weight:900; color:#7CE0A3; }
   #tip .meta { margin-top:6px; color:#bbb; font-size:11px; }
+  /* Tech challenge "how to win" overlay (opens from a Tech Challenges box) */
+  #map.tech .box { cursor:pointer; }
+  #map.tech .box:hover, #map.tech .box:focus-visible { outline:2px solid #000; outline-offset:1px; }
+  .hint { color:#000; font-weight:700; }
+  .tw { position:fixed; inset:0; z-index:15; background:rgba(255,255,255,.55); }
+  .tw[hidden] { display:none; }
+  .twp { position:absolute; background:var(--bg); border:1.5px solid #000; padding:10px 14px 12px; display:flex; flex-direction:column; gap:8px; overflow:hidden; --f:1; }
+  .twh { display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; flex-shrink:0; }
+  .twh .logo { height:calc(26px * var(--f)); }
+  .twh h2 { font-size:calc(22px * var(--f)); font-weight:900; letter-spacing:-.02em; line-height:1.1; }
+  .twh .pz { font-size:calc(13px * var(--f)); color:var(--mute); flex:1; min-width:0; }
+  .twh .pz b { color:#000; font-size:calc(16px * var(--f)); }
+  .twc { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.35fr); gap:8px; }
+  .twc > div { display:flex; flex-direction:column; gap:8px; min-width:0; min-height:0; }
+  .tk { border:1.5px solid #000; padding:calc(8px * var(--f)) 10px; display:flex; flex-direction:column; gap:calc(5px * var(--f)); min-width:0; }
+  .tk.grow { flex:1; }
+  .tk.blk { background:#000; color:#fff; }
+  .tk.blk .lbl { color:#ccc; }
+  .tk .lbl { font-size:calc(10.5px * var(--f)); }
+  .tk ol { list-style:none; counter-reset:s; display:flex; flex-direction:column; gap:calc(6px * var(--f)); }
+  .tk ol li { counter-increment:s; display:grid; grid-template-columns:calc(22px * var(--f)) minmax(0,1fr); gap:8px; font-size:calc(14px * var(--f)); line-height:1.3; }
+  .tk ol li::before { content:counter(s); font-weight:900; font-size:calc(15px * var(--f)); border:1.5px solid #000; height:calc(22px * var(--f)); display:grid; place-items:center; }
+  .tk.blk ol li::before { border-color:#fff; }
+  .tk p, .tk li { font-size:calc(13px * var(--f)); line-height:1.32; }
+  .tk .jr { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 10px; align-items:baseline; font-size:calc(13.5px * var(--f)); line-height:1.3; padding:calc(3px * var(--f)) 0; border-bottom:1px solid #000; }
+  .tk .jr:last-child { border-bottom:0; }
+  .tk .jr b { font-size:calc(17px * var(--f)); font-weight:900; font-variant-numeric:tabular-nums; }
+  .tk .na { font-size:calc(13.5px * var(--f)); color:var(--mute); }
+  .tk .uu { display:flex; flex-direction:column; gap:calc(4px * var(--f)); }
+  .tk .u { font-size:calc(12.5px * var(--f)); line-height:1.3; padding-left:10px; border-left:2px solid #000; }
+  .tk .u b { font-weight:900; }
+  .tk .u.dim { border-left-color:#bbb; color:#444; }
+  .tk .big { font-size:calc(28px * var(--f)); font-weight:900; letter-spacing:-.03em; line-height:1; }
+  .twf { font-size:calc(10.5px * var(--f)); color:var(--mute); flex-shrink:0; }
+  @media (max-width: 900px) { .twc { grid-template-columns:1fr; overflow:auto; } }
   @media (max-width: 1000px) { .gcols { grid-template-columns:repeat(2, minmax(0,1fr)); } }
   @media (max-width: 560px) { .gcols { grid-template-columns:1fr; } }
 </style>
@@ -332,6 +367,7 @@
       <span><span class="us-key could"></span><b class="us-txt">◇ could have</b></span>
       <span><i class="d"></i>Contains items – € value estimated (team of 4)</span>
       <span>$ → € at 0.86 for sizing · tiny prizes raised to a minimum size</span>
+      <span class="hint" id="techHint" hidden>☞ Click a box for how to win</span>
     </div>
     <div class="rules">
       <span><b>To win:</b> no code written before the event</span><span>team 1–4</span><span>≥1 Main Challenge</span>
@@ -605,6 +641,7 @@ data/ stays out: 10 GB, partly NonCommercial</pre>
   <div class="legend">Source: aistudio.google.com/docs/models + /pricing + /rate-limits, read Sat 14.11. Context windows only stated for Gemini 4 (1M). Gemini Omni video price was unclear on the page ($0.07–0.10/s).</div>
 </div>
 <div id="tip" hidden></div>
+<div class="tw" id="tw" hidden><div class="twp" id="twp" role="dialog" aria-modal="true" aria-labelledby="twTitle"></div></div>
 
 <script>
 /* ---------- LOGOS ---------- [file, invert white→black] */
@@ -683,6 +720,130 @@ const TECH = [
   ]},
 ];
 
+/* ---------- HOW TO WIN each tech challenge (public challenge info only) ----------
+   steps = plain "to win" steps · judge = [criterion, weight] or null (not published) · use = [part, what it is] (dim = optional) */
+const ENTER = "Name it in the tech-challenge field of the Project Submission form and say in 1–2 lines how you used it.";
+const HOW = {
+  "Best Use of Codex": {
+    steps: ["Build a real part of the project with Codex, not one tiny prompt.", "Keep proof: commits, PRs or tasks made with Codex.",
+      "Show in the demo or video what Codex built or fixed.", ENTER],
+    judge: null, judgeNote: "Meaningful use of Codex in the development process.",
+    use: [["Codex CLI", "agent in the terminal, edits and runs code in your repo"], ["IDE extension", "VS Code / JetBrains side panel, same agent as the CLI"],
+      ["Codex cloud tasks", "hand off a task, it runs in a sandbox on your GitHub repo"], ["@codex on GitHub", "tag it in an issue or PR to start a task"],
+      ["Code review", "Codex reviews pull requests"], ["AGENTS.md", "repo rules file Codex reads first"],
+      ["Sponsor credits", "$100 / person, used through ChatGPT / Codex, not API credits", 1]],
+  },
+  "Verda Compute Track": {
+    steps: ["Build something that would not run on a laptop: big model, GPU, many jobs.", "Run it on Verda for real, not just sign up.",
+      "Show the Verda part working in the demo.", ENTER],
+    judge: null, judgeNote: "Use Verda compute for something a laptop can't do.",
+    use: [["Inference API", "hosted models behind an API"], ["NVIDIA Nemotron endpoint", "hosted with NVIDIA, also counts toward Nemotron"],
+      ["GPU instances / Instant Clusters", "rent GPUs for training or big models"], ["CPU instances", "plain servers"],
+      ["Auto-scaling containers", "serve your own model as an endpoint"], ["Batch jobs", "run many jobs at once"],
+      ["Credits", "€200 per account, card on file (not charged); QR on the tables", 1]],
+  },
+  "Best Use of Gemini API": {
+    steps: ["Make Gemini a core part of the product, not an LLM glued on the side.", "Use what Gemini is good at: images, PDFs, long context, structured output.",
+      "Show it live in the demo: input → Gemini → result.", "Explain the problem, how you use Gemini and why Gemini (not just any model).", ENTER],
+    judge: null, judgeNote: "More than “LLM glued on”: explain the problem, how and why Gemini.",
+    use: [["Gemini API key", "free key from Google AI Studio (aistudio.google.com); team credits via the Junction form (18+)"],
+      ["Models", "Flash-Lite = cheapest and fastest · Flash = best price/quality · Pro / newest generation = hardest reasoning"],
+      ["Multimodal input", "images, PDFs, audio, video in the same request as text"],
+      ["Object detection", "asks for boxes → returns [ymin, xmin, ymax, xmax] on a 0–1000 grid; segmentation as polygons"],
+      ["Structured output", "force JSON that matches your schema (Pydantic / Zod / JSON Schema)"],
+      ["Function calling", "the model calls your own functions / tools"],
+      ["Long context", "up to ~1M tokens: many pages or a whole document set at once"],
+      ["Thinking", "built-in reasoning, budget can be set or turned off"],
+      ["Code execution", "the model writes and runs Python for exact math"],
+      ["Context caching · Batch mode", "reuse a big input cheaply · async jobs at half price"],
+      ["Embeddings", "vectors for search and matching", 1], ["Google Cloud credits", "$1k / member are part of the prize, not needed to enter", 1]],
+  },
+  "Best Use of Modal": {
+    steps: ["Run a real part of the project on Modal: model, GPU job or backend.", "Deploy it so judges can open a live URL.",
+      "Show the Modal part in the demo.", ENTER],
+    judge: [["Effective use of Modal", "40%"], ["Ambition", "25%"], ["Impact", "20%"], ["Live demo with a URL", "15%"]],
+    use: [["Functions", "Python functions that run in the cloud with one decorator"], ["GPUs", "T4 up to H100 / B200, billed per second"],
+      ["Web endpoints", "turn a function into a public URL (the live demo)"], ["Model serving", "host an open model, e.g. Gemma, behind an API"],
+      ["Volumes", "store model weights and data"], ["Batch / .map()", "fan out over many inputs in parallel"],
+      ["Sandboxes", "run untrusted or generated code safely", 1], ["Credits", "$100 / person", 1]],
+  },
+  "Best Use of Gemma": {
+    steps: ["Use an open Gemma model as a core part, not a side call.", "Say where it runs (AI Studio, Hugging Face, Featherless, Modal, Verda, own GPU).",
+      "Show why an open / small model fits: cost, speed, privacy, on-device.", "Show it working in the demo.", ENTER],
+    judge: null, judgeNote: "Best use of the open Gemma models.",
+    use: [["Gemma ≠ Gemini", "Gemma = open-weight models you can download, fine-tune and run yourself; Gemini = Google's hosted API models"],
+      ["Gemma 4 sizes", "E2B / E4B (phone, edge) · 26B A4B mixture-of-experts · 31B dense (one big GPU)"],
+      ["Multimodal", "text + image input on all sizes; audio on the small ones"],
+      ["Licence", "Apache 2.0: free to use and ship"],
+      ["Run it via", "AI Studio / Gemini API (no setup) · Hugging Face · Featherless (serverless API) · Modal or Verda (own GPU) · Ollama locally"],
+      ["Fine-tune", "LoRA on your own data, e.g. with Hugging Face or Unsloth"],
+      ["Function calling + JSON", "works with structured prompts / tool use", 1],
+      ["Family", "e.g. EmbeddingGemma for search, specialised variants", 1]],
+  },
+  "Agentic use of Oxylabs Web API": {
+    steps: ["Let an agent use the Oxylabs Web API to get live web data.", "Make the web data matter for the result.",
+      "Show it in the demo and say why the answers can be trusted.", ENTER],
+    judge: [["Use of Oxylabs", "30%"], ["Value", "25%"], ["Trust", "20%"], ["Execution", "15%"], ["Originality", "10%"]],
+    use: [["Web Scraper API", "fetch any page, rendered and unblocked"], ["SERP / e-commerce targets", "ready-made parsers for search and shops"],
+      ["MCP server / agent tools", "plug it into an agent"], ["Plan", "1st month of the $500 plan free, card needed, cancel after", 1]],
+  },
+  "Best Use of Nemotron": {
+    steps: ["Make an NVIDIA Nemotron model central to the project.", "Get good, checkable output from it.",
+      "Show it in the demo.", ENTER],
+    judge: [["Nemotron is central", "25%"], ["Technical execution", "25%"], ["Quality of AI output", "25%"], ["Creativity", "25%"]],
+    use: [["Nemotron 3.5 Super VL", "120B, 12B active, reads text, images and documents"], ["NVIDIA API key", "ask NVIDIA on Discord"],
+      ["Verda endpoint", "Nemotron hosted on Verda"], ["Open weights", "run on Hugging Face / own GPU", 1]],
+  },
+  "Best Use of Aiven": {
+    steps: ["Use at least one Aiven service as a real part of the project.", "One clean service is enough, no need for many.",
+      "Show what it enables in the demo.", ENTER],
+    judge: [["Meaningful use", "40%"], ["Technical", "30%"], ["Impact", "20%"], ["Creativity", "10%"]],
+    use: [["Aiven Runtime", "host your app or agent"], ["PostgreSQL", "store data"], ["Valkey", "caching"], ["Kafka", "events and streams"],
+      ["ClickHouse", "observe / analyse your agent"], ["OpenSearch", "search"], ["Credits", "$50 free on sign-up · mentors on the 5th floor", 1]],
+  },
+  "Best Use of Cloudinary": {
+    steps: ["Use one of the 4 Cloudinary hackathon tools in the project.", "Fill in the required Cloudinary hackathon survey form.",
+      "Show the media part in the demo.", ENTER],
+    judge: [["Innovation", "30%"], ["UX", "30%"], ["Technical", "20%"], ["Impact", "20%"]],
+    use: [["Image & video API", "upload, store, deliver"], ["Transformations", "resize, crop, convert by URL"],
+      ["AI features", "background removal, generative fill, tagging"], ["Required", "hackathon survey form (link on the challenge page)", 1]],
+  },
+  "MLH · 8 item prizes": {
+    steps: ["Pick one MLH sponsor: MongoDB Atlas, Solana, Entire, Tiger Data, ElevenLabs, Vultr, DEV or Gemini.", "Use it in a real way in the project.",
+      "Show it in the demo.", "Name it in the tech-challenge field (each is its own MLH entry)."],
+    judge: null, judgeNote: "Each MLH prize = best use of that one tool.",
+    use: [["MongoDB Atlas", "database · M5Stack IoT kit / member"], ["ElevenLabs", "voice, text to speech · earbuds"], ["Solana", "blockchain · HW wallet / member"],
+      ["Tiger Data", "Postgres for time series · Stream Deck Mini"], ["Vultr", "cloud servers · mini monitor"], ["Entire", "sessions / graph / brain · mini projector"],
+      ["DEV", "write a post about the project · $100"], ["Gemini (MLH)", "Gemini API · swag kits"]],
+  },
+  "Best Use of Context.dev": {
+    steps: ["Put a Context.dev endpoint in the core flow of the app.", "Turn the web into structured data you actually use.",
+      "Show it in the demo.", ENTER],
+    judge: [["Creativity", "40%"], ["Centrality", "30%"], ["Execution", "30%"]],
+    use: [["Structured web endpoints", "pages, brands, products as clean JSON"], ["API credits", "50,000 per team, no expiry", 1]],
+  },
+  "Best use of Arduino UNO Q": {
+    steps: ["Build a working hardware prototype on the UNO Q.", "Run edge AI on the board, not only in the cloud.",
+      "Show the physical demo.", ENTER],
+    judge: [["Hardware & edge AI", "50%"], ["Prototype / demo", "30%"], ["Creativity", "20%"]],
+    use: [["UNO Q", "Linux + real-time microcontroller on one board"], ["Edge AI", "run a small model on the board"],
+      ["Modulino sensors", "plug-in sensors"], ["Hardware Lab", "borrow for free, 5th floor", 1]],
+  },
+  "Atech Real World Challenge": {
+    steps: ["Build a physical device with Atech modules (ESP32).", "Flash firmware in the browser (Chrome / Edge, WebSerial).",
+      "Show it working for real.", ENTER],
+    judge: null, judgeNote: "Physical device with Atech modules; kits are limited.",
+    use: [["Atech modules", "ESP32-based building blocks"], ["Browser firmware", "flash via WebSerial in Chrome / Edge"], ["Kits", "limited, ask at the booth", 1]],
+  },
+  "Best use of CRACI": {
+    steps: ["Run the project's CI on CRACI runners (runs-on: craci).", "Use CRACI features in a creative way.",
+      "Show a green pipeline in the demo or README.", ENTER],
+    judge: [["Technical depth", "50%"], ["Creative use of features", "50%"]],
+    use: [["CI runners", "GitHub Actions compatible, 1–32 vCPU"], ["SBOM", "software bill of materials"], ["AI fixes", "suggested fixes for failing builds"],
+      ["Provenance", "build provenance"], ["Network traces", "see what the build talks to"], ["Credits", "€1,000 per team, invite code at the booth", 1]],
+  },
+};
+
 /* ours: on track = already in our code · step = one concrete step away (checked against drawingsense/, Sat 14.11.) */
 const OURS = new Set(["Make Blueprints Talk","Best Use of Gemini API","Best Use of Gemma","Best Use of Codex"]);
 const STEP = new Set(["Junction 2026 Overall Winner","Best Use of Modal","Best use of CRACI","Best Use of Nemotron"]);
@@ -733,6 +894,8 @@ function renderBox(parent, it, x, y, w, h) {
   const d = document.createElement("div");
   d.className = "box" + (it.est ? " est" : "") + (OURS.has(it.name) ? " ours" : STEP.has(it.name) ? " ours step" : COULD.has(it.name) ? " ours could" : "");
   Object.assign(d.style, { left: x + "px", top: y + "px", width: w + "px", height: h + "px" });
+  d.dataset.name = it.name;
+  if (HOW[it.name] && parent.classList.contains("tech")) { d.tabIndex = 0; d.setAttribute("role", "button"); d.setAttribute("aria-label", it.name + ": how to win"); }
   const s = Math.sqrt(w * h);
   if (it.list) {
     const cols = w > h * 1.3 ? 4 : 2;
@@ -760,6 +923,8 @@ function draw(groups) {
   const el = document.getElementById("map"), W = el.clientWidth, H = el.clientHeight, G = 4, HD = 20;
   if (!W || !H) return;
   el.innerHTML = "";
+  el.classList.toggle("tech", groups === TECH);
+  document.getElementById("techHint").hidden = groups !== TECH;
   const grand = groups.reduce((s, g) => s + g.items.reduce((a, i) => a + i.v, 0), 0);
   const floor = grand * 0.022;                                  // min area so small prizes stay readable
   const gs = groups.map(g => {
@@ -944,6 +1109,56 @@ document.querySelectorAll("#sw .card").forEach(c => {
   c.insertAdjacentHTML("beforeend", `<span class="more">Click: all Gemini tools →</span>`);
   c.onclick = openGem;
   c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openGem(); } };
+});
+
+/* ---------- TECH CHALLENGE "HOW TO WIN" OVERLAY ---------- */
+const tw = document.getElementById("tw"), twp = document.getElementById("twp");
+let twName = null, twBack = null;
+const techItem = n => TECH.flatMap(g => g.items).find(i => i.name === n);
+function placeTw() {
+  const r = document.querySelector("main").getBoundingClientRect();
+  Object.assign(twp.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" });
+  for (let f = 1.4; f >= 0.6; f -= 0.04) {          // largest type that still fits without overflow
+    twp.style.setProperty("--f", f.toFixed(2));
+    const over = [twp, ...twp.querySelectorAll(".tk")].some(e => e.scrollHeight > e.clientHeight + 1);
+    if (!over) break;
+  }
+}
+function openTw(name) {
+  const h = HOW[name], it = techItem(name); if (!h || !it) return;
+  twName = name; twBack = document.activeElement;
+  const logos = it.list ? img("mlh") : it.logos.map(k => img(k)).join("");
+  const prize = it.list ? it.list.map(([p, k]) => `${p} <span style="color:var(--mute)">(${k})</span>`).join(" · ") : `<b>${it.first}</b> · ${it.rest || ""}`;
+  const judge = h.judge
+    ? h.judge.map(([c, w]) => `<div class="jr"><span>${c}</span><b>${w}</b></div>`).join("")
+    : `<p class="na"><b style="color:#000">Weights not published — ask at the booth.</b></p>` + (h.judgeNote ? `<p>Page says: ${h.judgeNote}</p>` : "");
+  twp.innerHTML = `
+    <div class="twh">${logos}<h2 id="twTitle">${name}</h2><span class="pz">${it.est ? "items, value estimated · " : ""}${it.list ? "8 separate item prizes" : "1st " + it.first}</span>
+      <button class="xbtn" id="twClose" type="button">Close ✕</button></div>
+    <div class="twc">
+      <div><div class="tk blk grow"><span class="lbl">1 · To win</span><ol>${h.steps.map(s => `<li><span>${s}</span></li>`).join("")}</ol></div>
+        <div class="tk"><span class="lbl">5 · Deadline / how to enter</span>
+          <p>Tick <b>${name}</b> in the <b>Project Submission</b> form under <b>tech challenge participation</b>.</p>
+          <p>Before <b>Sun 15.11. 10:00 Finland time</b> (set FINAL). Any number of tech challenges can be stacked on top of a main challenge.</p></div></div>
+      <div><div class="tk grow"><span class="lbl">2 · Judging</span>${judge}</div>
+        <div class="tk"><span class="lbl">4 · Prize</span><p style="font-size:calc(15px * var(--f))">${prize}</p></div></div>
+      <div><div class="tk grow"><span class="lbl">3 · Use these parts of the tool</span><div class="uu">${h.use.map(([a, b, dim]) => `<div class="u${dim ? " dim" : ""}"><b>${a}</b> · ${b}</div>`).join("")}</div></div></div>
+    </div>
+    <div class="twf">Source: Junction platform tech-challenge pages + sponsor docs, read Sat 14.11. · Esc, ✕ or click outside to close</div>`;
+  tw.hidden = false;
+  placeTw();
+  document.getElementById("twClose").onclick = closeTw;
+  document.getElementById("twClose").focus();
+}
+function closeTw() { if (tw.hidden) return; tw.hidden = true; twName = null; twBack?.focus?.(); }
+tw.addEventListener("click", e => { if (!twp.contains(e.target)) closeTw(); });
+addEventListener("keydown", e => { if (e.key === "Escape") closeTw(); });
+addEventListener("resize", () => { if (!tw.hidden) placeTw(); });
+const mapEl = document.getElementById("map");
+mapEl.addEventListener("click", e => { const b = e.target.closest(".box"); if (b && mapEl.classList.contains("tech")) openTw(b.dataset.name); });
+mapEl.addEventListener("keydown", e => {
+  const b = e.target.closest(".box");
+  if (b && mapEl.classList.contains("tech") && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openTw(b.dataset.name); }
 });
 
 document.getElementById("hw").innerHTML = HW.map(([l, n, p, t, hot]) =>
