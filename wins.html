@@ -92,6 +92,20 @@
   .smark.ok { color:#7C3AED; border:1px solid #7C3AED; }
   .smark.todo { color:#DC2626; border:1px solid #DC2626; }
   .setup-key { display:inline-block; width:14px; height:9px; border:3px solid; vertical-align:-1px; margin:0 4px 0 2px; }
+  /* Credits */
+  #cr { flex:1; min-height:0; overflow:hidden; }
+  .crt { width:100%; table-layout:fixed; border-collapse:collapse; font-size:clamp(10px, .92vw, 14px); line-height:1.3; }
+  .crt th, .crt td { text-align:left; padding:5px 6px; border-bottom:1px solid #000; vertical-align:top; }
+  .crt th { font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); border-bottom:2px solid #000; }
+  .crt td:first-child { font-weight:900; }
+  .crt td.n { font-variant-numeric:tabular-nums; }
+  .crt td.left { font-weight:900; }
+  .crt td.note { color:#333; }
+  .crt .pp { font-weight:700; }
+  .crt .who-ok { color:#7C3AED; font-weight:700; white-space:nowrap; }
+  .crt .who-no { color:#DC2626; font-weight:700; white-space:nowrap; }
+  .crt tr.out td { color:var(--mute); }
+  .crt tr.hit td.n { color:#DC2626; }
   #hw .card .logo { height:clamp(18px, 3.5vh, 38px); }
   #hw .card b { font-size:clamp(15px, 1.7vw, 24px); }
   #hw .card p { font-size:clamp(11px, .95vw, 14px); }
@@ -214,6 +228,7 @@
   <div class="tabs" id="subTools" style="display:none">
     <button class="tab" data-sub="sw" aria-selected="true">Software · free credits</button>
     <button class="tab" data-sub="hw" aria-selected="false">Hardware</button>
+    <button class="tab" data-sub="cr" aria-selected="false">Credits</button>
   </div>
   <div class="tabs" id="subCh" style="display:none">
     <button class="tab" data-sub="problem" aria-selected="true">Problem</button>
@@ -483,6 +498,7 @@ data/ stays out: 10 GB, partly NonCommercial</pre>
   <section class="view" id="tools">
     <div class="grid" id="sw"></div>
     <div class="grid" id="hw" style="display:none"></div>
+    <div id="cr" style="display:none"></div>
     <div class="legend" id="toolfoot"></div>
   </section>
 </main>
@@ -717,8 +733,32 @@ document.getElementById("sw").innerHTML = SW.map(([l, n, free, p, hot]) =>
   `<div class="card${hot ? " hot" : ""}${US_TOOLS.has(n) ? " us" : STEP_TOOLS.has(n) ? " us step" : ""}${SETUP_OK.has(n) ? " setup-ok" : SETUP_TODO.has(n) ? " setup-todo" : ""}">${mark(n)}${l ? img(l, n) : ""}<b>${n}</b><div class="free">${free}</div><p>${p}</p></div>`).join("");
 document.getElementById("hw").innerHTML = HW.map(([l, n, p, t, hot]) =>
   `<div class="card${hot ? " hot" : ""}${COULD_HW.has(n) ? " us could" : ""}">${img(l, n)}<b>${n}</b><p>${p}</p><span class="tag">${t}</span></div>`).join("");
+/* ---------- CREDITS (checked on the dashboards, Sat 14.11. ~09:15 Finland time) ----------
+   [tool, credit, per person/team, claimed (1 = Handan), used, left, notes, row class] · no codes/links here, repo is public */
+const CR = [
+  ["Google Gemini · AI Studio", "Free tier: Flash Lite 500 req/day, 3.6 Flash 20/day · + team credits (form)", "free tier per Google account · credits per team", 1, "503/500 Flash Lite · 25/20 3.6 Flash today · €0 billed", "0 today → resets daily 10:00 Finland", "Limit hit overnight. Teammates can make their own free-tier key = +500/day each. Team-credit key requested, not arrived yet", "hit"],
+  ["Featherless", "$50 API voucher", "per account", 1, "$0.009 · 46 requests (Gemma 4 31B)", "$49.99", "Both $25 halves arrived. ~5,000 Gemma calls left at this rate"],
+  ["Modal", "$100 / person, 1 year", "per person", 1, "$0.00", "$100.00", "Nothing deployed yet (demo URL = Modal prize)"],
+  ["Exa", "$50 / person (+$10/mo free)", "per person", 1, "$0.00", "$70.00", "Not in our code"],
+  ["Context.dev", "50,000 API credits", "per team", 1, "0 calls", "51,000", "Incl. 1k free/month. Don't claim again"],
+  ["Aiven", "$50 trial, 30 days", "per account", 1, "$0.00 · no service", "$50.00 · 30 days", "Only counts for the Aiven prize if a service runs"],
+  ["ElevenLabs", "Free plan 10,000 credits / month · MLH code: Creator plan (121k/mo) or $22 off", "per person · own account + own MLH code", 1, "0 / 10,000", "10,000", "10k credits ≈ 10k characters ≈ 1,500–1,700 words of speech (Flash model: half price ≈ 3,000+ words). Each teammate gets their own 10k + own MLH code. Handan's code saved, not activated"],
+  ["OpenAI Codex", "$100 / person (2,500 credits, 30 days)", "per person · personal link", 1, "Sponsor credits: 0 · our 3 tasks + 6 images ran on another ChatGPT plan", "unknown – check dashboard", "Link received, redeem in ChatGPT"],
+  ["Anthropic · Claude", "$20 API credits", "per person", 0, "—", "$20 × 4", "Offer link on the Junction platform"],
+  ["Verda", "€200 compute + inference", "per account", 0, "—", "€200 each", "Card needed (not charged)"],
+  ["CRACI", "€1,000 CI credits", "per team", 0, "—", "€1,000", "Invite code at the booth"],
+  ["NVIDIA Nemotron", "API key", "per team", 0, "—", "—", "Asked via Discord DM, waiting"],
+  ["IronShard", "S3 storage, free", "per team", 0, "—", "—", "Only for files > 100 MB"],
+  ["Oxylabs", "1st month of $500 plan free", "per account", 0, "—", "—", "Card needed, cancel after!", "out"],
+  ["Cloudinary · MongoDB", "Free tiers", "per account", 1, "0", "free tier", "Cloudinary prize needs the survey form", "out"],
+  ["Google Flow (not sponsor)", "Own Google AI PLUS plan", "Handan's own", 1, "unknown – check dashboard", "250 credits · reset 29.11.", "Video/images for the pitch", "out"],
+];
+document.getElementById("cr").innerHTML = `<table class="crt"><colgroup><col style="width:11%"><col style="width:17%"><col style="width:13%"><col style="width:7%"><col style="width:16%"><col style="width:11%"><col></colgroup><tr><th>Tool</th><th>Credit</th><th>Per person / team</th><th>Claimed by</th><th>Used</th><th>Left</th><th>Notes</th></tr>` +
+  CR.map(([t, c, pp, who, used, left, note, cls]) => `<tr${cls ? ` class="${cls}"` : ""}><td>${t}</td><td>${c}</td><td class="pp">${pp}</td>` +
+    `<td>${who ? '<span class="who-ok">✓ Handan</span>' : '<span class="who-no">not yet</span>'}</td><td class="n">${used}</td><td class="n left">${left}</td><td class="note">${note}</td></tr>`).join("") + `</table>`;
 const FOOT = {
   sw: "<span class='setup-key' style='border-color:#7C3AED'></span>Purple frame / ✓ set up = account/credits done · <span class='setup-key' style='border-color:#DC2626'></span>red frame / ⏳ open = still to set up · Green ★ = in use now (Gemini vision, Gemma via Featherless, Codex, Claude for building) · dashed ☆ = one step away (Modal demo URL, CRACI CI, ElevenLabs voice, Nemotron waits for NVIDIA key) · big text = free for every participant · thick border = there's also a prize for using it · redeem on the Junction Platform → Hackerpacks.",
+  cr: "<span><b style='color:#000'>Per person</b> = all 4 (Wael, Olaf, Vlad, Handan) can claim it · <b style='color:#000'>per account</b> = everyone with their own sign-up · <b style='color:#000'>per team</b> = claim once only · ✓ Handan = claimed on Handan's accounts, others unknown · read from the dashboards Sat 14.11. ~09:15 · real money spent so far: ≈ $0.01.</span>",
   hw: "Dotted green ◇ = could have (printed floor plan, LEDs light the room the answer is about) · Hardware Lab by Arduino · 5th floor, Hype Areena · borrow hardware for free · thick border = linked to a challenge.",
 };
 
@@ -731,7 +771,7 @@ function render() {
   document.getElementById("subTools").style.display = state.view === "tools" ? "flex" : "none";
   document.querySelectorAll("#subWins [data-sub]").forEach(b => b.setAttribute("aria-selected", b.dataset.sub === state.wins));
   document.querySelectorAll("#subTools [data-sub]").forEach(b => b.setAttribute("aria-selected", b.dataset.sub === state.tools));
-  ["sw", "hw"].forEach(k => document.getElementById(k).style.display = k === state.tools ? "grid" : "none");
+  ["sw", "hw", "cr"].forEach(k => document.getElementById(k).style.display = k === state.tools ? (k === "cr" ? "block" : "grid") : "none");
   document.getElementById("subCh").style.display = state.view === "challenge" ? "flex" : "none";
   document.querySelectorAll("#subCh [data-sub]").forEach(b => b.setAttribute("aria-selected", b.dataset.sub === state.ch));
   document.querySelectorAll(".ch").forEach(c => c.classList.toggle("on", c.id === "ch-" + state.ch));
