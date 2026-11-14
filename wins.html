@@ -91,11 +91,20 @@
   .smark { position:absolute; bottom:6px; right:8px; font-size:10px; font-weight:900; letter-spacing:.02em; padding:1px 5px; background:#fff; white-space:nowrap; }
   .smark.ok { color:#7C3AED; border:1px solid #7C3AED; }
   .smark.todo { color:#DC2626; border:1px solid #DC2626; }
+  /* usage meter on each tool card: number sits inside the bar */
+  .meter { position:relative; height:17px; border:1.5px solid #000; background:#fff; margin:2px 0 1px; overflow:hidden; flex-shrink:0; }
+  .meter i { position:absolute; left:0; top:0; bottom:0; background:#000; }
+  .meter span { position:relative; display:block; padding:0 6px; font-size:10.5px; font-weight:900; line-height:14px; white-space:nowrap; font-variant-numeric:tabular-nums; color:#fff; mix-blend-mode:difference; }
+  .meter.full { border-color:#DC2626; }
+  .meter.full i { background:#DC2626; }
+  .meter.full span { color:#fff; mix-blend-mode:normal; }
+  .meter.na { border:1.5px dashed #aaa; }
+  .meter.na span { color:#999; font-weight:700; mix-blend-mode:normal; }
   .setup-key { display:inline-block; width:14px; height:9px; border:3px solid; vertical-align:-1px; margin:0 4px 0 2px; }
   /* Credits */
   #cr { flex:1; min-height:0; overflow:hidden; }
   .crt { width:100%; table-layout:fixed; border-collapse:collapse; font-size:clamp(9px, .74vw, 12px); line-height:1.22; }
-  .crt th, .crt td { text-align:left; padding:3px 6px; border-bottom:1px solid #000; vertical-align:top; }
+  .crt th, .crt td { text-align:left; padding:2px 6px; border-bottom:1px solid #000; vertical-align:top; }
   .crt th { font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); border-bottom:2px solid #000; }
   .crt td:first-child { font-weight:900; }
   .crt td.n { font-variant-numeric:tabular-nums; }
@@ -109,6 +118,12 @@
   .bar i { position:absolute; left:0; top:0; bottom:0; background:#000; }
   .bar.full i { background:#DC2626; }
   .bar.na { border-style:dashed; border-color:#999; }
+  .mb { display:flex; gap:5px; margin:1px 0 3px; }
+  .mb > span { flex:1; display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .mb b { font-size:9px; font-weight:900; display:flex; justify-content:space-between; }
+  .mb b em { font-style:normal; font-weight:700; color:#555; }
+  .mb .bar { flex:none; height:7px; }
+  .bar.zero { border-color:#DC2626; }
   .barlbl { font-size:9.5px; font-weight:900; letter-spacing:.03em; white-space:nowrap; min-width:58px; text-align:right; }
   .crt tr.out td { color:var(--mute); }
   .crt tr.hit td.n { color:#DC2626; }
@@ -215,6 +230,48 @@
     #hw { grid-template-columns:repeat(2, 1fr); }
     .meta, .legend { display:none; }
   }
+  /* Gemini overlay (opens from the Google DeepMind card) */
+  .card.open { cursor:pointer; }
+  .card.open:hover, .card.open:focus-visible { outline:2px solid #000; outline-offset:2px; }
+  .card .more { font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.05em; color:var(--us); }
+  .ovl { position:fixed; inset:0; z-index:20; background:var(--bg); display:flex; flex-direction:column; gap:8px;
+    padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); }
+  .ovl[hidden] { display:none; }
+  .ovl-head { display:flex; align-items:center; gap:8px 14px; flex-wrap:wrap; }
+  .ovl-head h2 { font-size:clamp(16px, 1.6vw, 24px); font-weight:900; letter-spacing:-.02em; }
+  .ovl-head .legend { flex:1; }
+  .ovl .alert { font-size:12px; border:1.5px solid #DC2626; color:#000; padding:5px 8px; }
+  .ovl .alert b { color:#DC2626; }
+  .gcols { flex:1; min-height:0; display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:6px; overflow:auto; }
+  .gcol { display:flex; flex-direction:column; gap:5px; min-width:0; }
+  .gcol > .lbl { padding:2px 0; }
+  .gm { border:1.5px solid #bbb; padding:6px 8px; display:flex; flex-direction:column; gap:2px; min-width:0; cursor:help; color:#555; }
+  .gm b { font-size:clamp(12px, 1vw, 15px); font-weight:900; color:#555; overflow-wrap:anywhere; }
+  .gm .id { font-family:ui-monospace, Consolas, monospace; font-size:10px; color:#888; overflow-wrap:anywhere; }
+  .gm .dt { font-size:11px; line-height:1.3; }
+  .gm .pr { font-size:11px; font-weight:700; color:#000; font-variant-numeric:tabular-nums; }
+  .gm.now { border:3px solid var(--us); background:var(--us-bg); color:#333; }
+  .gm.use { border:2px dashed var(--us); color:#333; }
+  .gm.pitch { border:2px dotted var(--us); color:#333; }
+  .gm.now b, .gm.use b, .gm.pitch b { color:#000; }
+  .gm.now b::before { content:"★ "; color:var(--us); }
+  .gm.use b::before { content:"☆ "; color:var(--us); }
+  .gm.pitch b::before { content:"◇ "; color:var(--us); }
+  .gm:hover, .gm:focus-visible { outline:2px solid #000; outline-offset:1px; }
+  .gkey { display:inline-block; width:14px; height:9px; vertical-align:-1px; margin-right:5px; border:1.5px solid #bbb; }
+  .gkey.now { border:2px solid var(--us); background:var(--us-bg); }
+  .gkey.use { border:2px dashed var(--us); }
+  .gkey.pitch { border:2px dotted var(--us); }
+  .xbtn { border:1.5px solid #000; background:var(--bg); font:inherit; font-size:13px; font-weight:700; padding:4px 12px; cursor:pointer; }
+  .xbtn:hover { background:#000; color:#fff; }
+  #tip { position:fixed; z-index:30; max-width:340px; background:#000; color:#fff; padding:9px 11px; font-size:12px; line-height:1.4; pointer-events:none; }
+  #tip[hidden] { display:none; }
+  #tip b { display:block; font-size:13px; margin-bottom:3px; }
+  #tip .ex { margin-top:6px; padding-top:6px; border-top:1px solid #555; }
+  #tip .ex::before { content:"Example for us: "; font-weight:900; color:#7CE0A3; }
+  #tip .meta { margin-top:6px; color:#bbb; font-size:11px; }
+  @media (max-width: 1000px) { .gcols { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  @media (max-width: 560px) { .gcols { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -267,17 +324,17 @@
 
   <section class="view" id="route">
     <div class="rt">
-      <span class="lab" style="top:0">↑ Tech prizes · <span class="us-txt">filled ★ = on track (in our code) · dashed ☆ = one step away · dotted ◇ = could have</span> · black = not used</span>
+      <span class="lab" style="top:0">↑ Tech prizes · <span class="us-txt">★ in use · ☆ open · ◇ could have</span></span>
       <span class="lab" style="bottom:0">↓ Stoa · Make Blueprints Talk · judged 25% each</span>
       <div class="lane"></div>
 
-      <div class="up" style="grid-column:1"><div class="br us go"><b>★ Codex</b>$10k · in use ✓ · built tests, README, IFC marks</div></div>
-      <div class="up" style="grid-column:2"><div class="br us go"><b>★ Gemini API</b>€4,000 · in use ✓ · reads scans + IFC text, boxes every counted object</div></div>
-      <div class="up" style="grid-column:3"><div class="br us go"><b>★ Gemma</b>€1,000 · in use ✓ · Gemma 4 (Featherless) turns free-form questions into exact ones · 22/22</div><div class="br us"><b>☆ Nemotron</b>RTX 5080 · waiting for NVIDIA key</div></div>
-      <div class="up" style="grid-column:4"><div class="br us"><b>☆ Modal</b>$2,000 · optional, demo URL missing (1–2 h)</div><div class="br"><b>Aiven</b>€1,000 · not used, no DB needed</div></div>
-      <div class="up" style="grid-column:5"><div class="br us"><b>☆ CRACI</b>LEGO · 15 min: add CI workflow</div></div>
-      <div class="up" style="grid-column:6"><div class="br us"><b>☆ ElevenLabs</b>earbuds (MLH) · ask by voice, answer read aloud · great for the video</div></div>
-      <div class="up" style="grid-column:7"><div class="br us could"><b>◇ Arduino UNO Q</b>kit per person · printed plan, LEDs light the room</div></div>
+      <div class="up" style="grid-column:1"><div class="br us go"><b>★ Codex</b>$10,000</div></div>
+      <div class="up" style="grid-column:2"><div class="br us go"><b>★ Gemini API</b>€4,000</div></div>
+      <div class="up" style="grid-column:3"><div class="br us go"><b>★ Gemma</b>€1,000</div><div class="br us"><b>☆ Nemotron</b>RTX 5080</div></div>
+      <div class="up" style="grid-column:4"><div class="br us"><b>☆ Modal</b>$2,000</div></div>
+      <div class="up" style="grid-column:5"><div class="br us"><b>☆ CRACI</b>LEGO</div></div>
+      <div class="up" style="grid-column:6"><div class="br us"><b>☆ ElevenLabs</b>Earbuds</div></div>
+      <div class="up" style="grid-column:7"><div class="br us could"><b>◇ Arduino</b>UNO Q kit</div></div>
 
       <div class="st" style="grid-column:1"><div class="n">SAT 09:00</div><b>1 repo</b><span>4 branches → main</span></div>
       <div class="st us" style="grid-column:2"><div class="n">SAT</div><b>Ask → answer</b><span>+ mark the spot</span></div>
@@ -285,22 +342,21 @@
       <div class="st" style="grid-column:4"><div class="n">SAT</div><b>Find conflicts</b><span>wow feature</span></div>
       <div class="st warn" style="grid-column:5"><div class="n">SAT 22:00</div><b>Feature stop</b><span>only fix bugs</span></div>
       <div class="st" style="grid-column:6"><div class="n">SUN 07:00</div><b>Video</b><span>≤ 2 min · deck PDF</span></div>
-      <div class="st warn" style="grid-column:7"><div class="n">SUN 09:30</div><b>FINAL</b><span>closes 10:00 Finland time (laptop shows 9:00)</span></div>
+      <div class="st warn" style="grid-column:7"><div class="n">SUN 09:30</div><b>FINAL</b><span>closes 10:00 sharp</span></div>
       <div class="st warn" style="grid-column:8"><div class="n">SUN 10:30</div><b>Peer review</b><span>all 4 there!</span></div>
       <div class="st goal" style="grid-column:9"><div class="n">SUN 14:15 · TOP 5</div><b>€10,000</b><span>Overall</span></div>
 
       <div class="down" style="grid-column:2"><div class="br"><b>Accuracy</b>right answers<br><b>Show proof</b>where in the drawing</div></div>
       <div class="down" style="grid-column:3"><div class="br"><b>Low cost</b>€ per question on screen</div></div>
       <div class="down" style="grid-column:4"><div class="br"><b>Creativity</b>auto-find mistakes between plans</div></div>
-      <div class="down" style="grid-column:7"><div class="br us go"><b>★ Stoa 1st</b>€1,000 + work trial · 2nd €750 · 3rd €250<br>Swiss CAD <b style="display:inline;font-size:inherit">100%</b> (2,358/2,358) · €0<br>IFC numeric <b style="display:inline;font-size:inherit">98%</b> · €0<br>Scans ~80–85% (estimate) · ~€0.001<br>Free-form 22/22 via Gemma</div></div>
+      <div class="down" style="grid-column:7"><div class="br us go"><b>★ Stoa 1st</b>€1,000 + work trial<br>2nd €750 · 3rd €250</div></div>
       <div class="down" style="grid-column:9"><div class="br"><b>Not top 5?</b>Stoa + tech wins stay</div></div>
     </div>
     <div class="jack">
-      <span><span class="us-key"></span>Realistic (in use ✓):</span><b class="us-txt">Stoa €1k + work trial + Gemini €4k + Gemma €1k ≈ €6,000</b>
-      <span>· <span class="us-key step"></span>+ still open (Modal $2k, Nemotron RTX 5080, CRACI LEGO, ElevenLabs earbuds):</span><b class="us-txt">≈ €8,850</b>
-      <span>· Codex $10k in use, but a long shot on top</span>
+      <span><span class="us-key"></span>Realistic:</span><b class="us-txt">≈ €6,000</b>
+      <span>· <span class="us-key step"></span>+ open:</span><b class="us-txt">≈ €8,850</b>
       <span>· Best case + Overall:</span><b>≈ €18,850</b>
-      <span>· all times Finland time (laptop runs 1 h behind)</span>
+      <span>· Finland time</span>
     </div>
   </section>
 
@@ -508,6 +564,24 @@ data/ stays out: 10 GB, partly NonCommercial</pre>
     <div class="legend" id="toolfoot"></div>
   </section>
 </main>
+
+<div class="ovl" id="gem" hidden role="dialog" aria-label="Gemini API tools">
+  <div class="ovl-head">
+    <h2>Gemini API · everything our key unlocks</h2>
+    <div class="legend">
+      <span><i class="gkey now"></i>★ in use now</span>
+      <span><i class="gkey use"></i>☆ makes sense for us</span>
+      <span><i class="gkey pitch"></i>◇ for the pitch video / deck</span>
+      <span><i class="gkey"></i>grey = not for us</span>
+      <span>Hover a tile for an example · prices USD, paid tier, per 1M tokens in / out</span>
+    </div>
+    <button class="xbtn" id="gemClose" type="button">Close ✕</button>
+  </div>
+  <div class="alert"><b>Free tier hit overnight:</b> Flash Lite 503/500 requests, 3.6 Flash 25/20 (resets 10:00 Finland). Each teammate's own free key adds +500/day. That is why the cheap helpers (Decision-1, caching, batch) are marked green.</div>
+  <div class="gcols" id="gemCols"></div>
+  <div class="legend">Source: aistudio.google.com/docs/models + /pricing + /rate-limits, read Sat 14.11. Context windows only stated for Gemini 4 (1M). Gemini Omni video price was unclear on the page ($0.07–0.10/s).</div>
+</div>
+<div id="tip" hidden></div>
 
 <script>
 /* ---------- LOGOS ---------- [file, invert white→black] */
@@ -732,11 +806,123 @@ const US_TOOLS = new Set(["Google DeepMind","Anthropic · Claude","OpenAI Codex"
 const STEP_TOOLS = new Set(["Modal","CRACI","ElevenLabs","NVIDIA Nemotron"]);              // one step away
 const COULD_HW = new Set(["Arduino UNO Q"]);                                               // could have
 // Setup status (Sat 14.11. ~03:30): purple = set up, red = still to set up. Tools without credits/accounts stay unmarked.
-const SETUP_OK = new Set(["Google DeepMind","Modal","Exa","Context.dev","Featherless","Aiven","Cloudinary","MongoDB Atlas","ElevenLabs","OpenAI Codex"]);
-const SETUP_TODO = new Set(["Anthropic · Claude","CRACI","Verda","NVIDIA Nemotron","IronShard","Oxylabs","Tiger Data","Vultr","Entire","Scailab"]);
+const SETUP_OK = new Set(["Google DeepMind","Modal","Exa","Context.dev","Featherless","Aiven","Cloudinary","MongoDB Atlas","ElevenLabs","OpenAI Codex","Anthropic · Claude","IronShard","Verda","Entire","Scailab"]);
+const SETUP_TODO = new Set(["CRACI","NVIDIA Nemotron","Oxylabs","Tiger Data","Vultr"]);
+/* usage per tool card: [% used or null if unknown, label shown inside the bar] · same data as the Credits tab */
+const CARD_USE = {
+  "Google DeepMind": [100, "503 / 500 today · limit"],
+  "Featherless": [0.018, "$0.01 / $50 used"],
+  "Modal": [0, "$0 / $100 used"],
+  "Exa": [0, "$0 / $70 used"],
+  "Context.dev": [0, "0 / 51k used"],
+  "Aiven": [0, "$0 / $50 used"],
+  "ElevenLabs": [0, "0 / 10k used"],
+  "OpenAI Codex": [null, "? / $100 · check dashboard"],
+  "Anthropic · Claude": [null, "not claimed"],
+  "Verda": [null, "not claimed"],
+  "CRACI": [null, "not claimed"],
+};
+const meter = n => {
+  const u = CARD_USE[n]; if (!u) return "";
+  const [pct, lbl] = u;
+  if (pct == null) return `<div class="meter na"><span>${lbl}</span></div>`;
+  const w = pct > 0 ? Math.max(2, Math.min(100, pct)) : 0;
+  return `<div class="meter${pct >= 100 ? " full" : ""}"><i style="width:${w}%"></i><span>${lbl}</span></div>`;
+};
 const mark = n => SETUP_OK.has(n) ? `<span class="smark ok">✓ set up</span>` : SETUP_TODO.has(n) ? `<span class="smark todo">⏳ open</span>` : "";
 document.getElementById("sw").innerHTML = SW.map(([l, n, free, p, hot]) =>
-  `<div class="card${hot ? " hot" : ""}${US_TOOLS.has(n) ? " us" : STEP_TOOLS.has(n) ? " us step" : ""}${SETUP_OK.has(n) ? " setup-ok" : SETUP_TODO.has(n) ? " setup-todo" : ""}">${mark(n)}${l ? img(l, n) : ""}<b>${n}</b><div class="free">${free}</div><p>${p}</p></div>`).join("");
+  `<div class="card${hot ? " hot" : ""}${US_TOOLS.has(n) ? " us" : STEP_TOOLS.has(n) ? " us step" : ""}${SETUP_OK.has(n) ? " setup-ok" : SETUP_TODO.has(n) ? " setup-todo" : ""}">${mark(n)}${l ? img(l, n) : ""}<b>${n}</b><div class="free">${free}</div>${meter(n)}<p>${p}</p></div>`).join("");
+/* ---------- GEMINI OVERLAY ----------
+   [column, model id, name, what it does, price, free tier, fit (now|use|pitch|""), example for us] */
+const GEM = [
+  ["Read & reason", "gemini-3.1-flash-lite", "Flash Lite 3.1", "Cheapest multimodal model. Our vision solver uses it today.", "$0.25 / $1.50", "free: 500 req/day", "now",
+    "Count the windows on a Finnish PNG floor plan → 13, with a box drawn around each one."],
+  ["Read & reason", "gemini-3.8-flash", "Flash 3.8", "Smartest Flash. Better at small symbols and long tasks.", "$0.75 / $3.75 (until 31.12.)", "free tier: yes", "use",
+    "Second try for hard scans: a faded 1950s Helsinki archive plan where Flash Lite miscounts the doors."],
+  ["Read & reason", "gemini-robotics-er-2-preview", "Robotics-ER 2", "Spatial reasoning. Points at objects in an image.", "$1.00 / $5.00", "free tier: yes", "use",
+    "“Point to every toilet” → one (x, y) point per WC. Points are exactly the proof we draw on the plan."],
+  ["Read & reason", "gemini-4-hydrogen", "Gemini 4 Hydrogen", "Fast Gemini 4, 1M token context.", "$1.50 / $7.50", "free tier: yes (data used for training)", "use",
+    "Load a whole 60-sheet US drawing set at once and ask “on which sheet is the door schedule?”"],
+  ["Read & reason", "gemini-4-argon · gemini-4-carbon", "Gemini 4 Argon / Carbon", "Frontier reasoning. Strongest models.", "$2 / $10 (to 30.11.), then $4 / $20", "no free tier", "",
+    "Judge only when two witnesses disagree. Far too expensive to run on every question."],
+  ["Read & reason", "gemini-3.1-pro-preview", "Pro 3.1", "Older Pro model.", "$2 / $12", "no free tier", "",
+    "Nothing Gemini 4 Argon can't do better for the same price."],
+  ["Read & reason", "gemini-3.6-flash", "Flash 3.6", "Previous Flash.", "$0.75 / $3.75", "free: 20 req/day", "",
+    "Same price as 3.8 Flash but older. No reason to pick it."],
+  ["Read & reason", "gemini-2.5-flash-lite", "Flash Lite 2.5", "Cheapest per token, older generation.", "$0.10 / $0.40", "free tier: yes", "",
+    "Cheapest baseline for the cost chart, but weaker on tiny symbols like WC seats."],
+
+  ["Cheap helpers", "gemini-decision-1", "Decision-1", "Yes/no, pick-one and score answers. Zero output tokens.", "$0.10 input only", "free: 10,000 req/day", "use",
+    "Router: “count, area, length or text question?” → one pick for a fraction of a cent. Or check each box: “is this a window? yes/no”."],
+  ["Cheap helpers", "gemma-4-31B-it (via Featherless)", "Gemma 4 31B", "Open model. Our Gemma path runs on Featherless.", "flat · $49.99 left", "Featherless voucher", "now",
+    "Parse “Kuinka monta ikkunaa…?” into count(window). Counts for the Gemma prize."],
+  ["Cheap helpers", "gemini-embedding-2", "Embedding 2", "Turns text, images, audio or PDF into vectors.", "text $0.20 · image $0.45", "free tier: yes", "use",
+    "Match a cropped symbol from the plan to the right legend entry, or pair a Finnish question with its English twin."],
+
+  ["Voice", "gemini-3.8-flash-lite-tts", "TTS Flash Lite 3.8", "Text to speech, 101 languages.", "$0.50 in / $6 out (audio)", "free tier: yes", "",
+    "Read the answer aloud: “Thirteen windows, marked in green.” We use ElevenLabs for this (prize)."],
+  ["Voice", "gemini-3.5-transcribe", "Transcribe 3.5", "Speech to text with speaker labels and timestamps.", "≈ $0.003 / min", "free tier: yes", "",
+    "Turn a spoken site question into text. ElevenLabs can do this too."],
+  ["Voice", "gemini-3.8-live", "Live 3.8", "Real-time voice conversation agent.", "≈ $0.005 in / $0.018 out per min", "free tier: yes", "",
+    "Talk to the drawing hands-free on site. Cool, but a big build for one night."],
+  ["Voice", "gemini-3.5-live-translate-preview", "Live Translate", "Real-time speech translation, 70+ languages.", "≈ $0.005 / $0.03 per min", "free tier: yes", "",
+    "A Finnish worker speaks, hears German back. Not our problem to solve."],
+
+  ["Pitch: image · video · music", "gemini-omni-1.2-flash", "Omni Flash (video)", "Up to 15 s video with sound, keyframes, extension.", "≈ $0.07–0.10 / s (720p)", "paid only", "pitch",
+    "B-roll for the 2-min video: “camera glides over a building site at dawn”. 15 s ≈ $1–1.50."],
+  ["Pitch: image · video · music", "gemini-3-pro-image", "Nano Banana Pro", "Studio-quality images, renders readable text.", "≈ $0.13 per image", "paid only", "pitch",
+    "Title slide: a clean blueprint with sharp labels “Make Blueprints Talk”."],
+  ["Pitch: image · video · music", "gemini-3.1-flash-image", "Nano Banana 2", "Fast image generation and editing.", "≈ $0.07 per 1K image", "paid only", "pitch",
+    "Quick variations for the deck: before/after of a plan with the answer highlighted."],
+  ["Pitch: image · video · music", "lyria-3-clip-preview", "Lyria 3 Clip", "Music clips and loops up to 30 s.", "$0.04 per clip", "paid only", "pitch",
+    "Background loop for the pitch video, 30 s for 4 cents."],
+  ["Pitch: image · video · music", "gemini-nano-banana-2.1", "Nano Banana 2.1", "Image editing with multi-turn consistency.", "≈ $0.03 per 1K image", "paid only", "",
+    "Iterate on one visual over several edits. Nano Banana Pro is enough for a deck."],
+
+  ["API features", "context caching", "Context caching", "Upload once, reuse the same input cheaply.", "cached input ≈ 5–10 % of price", "with any model", "use",
+    "Each drawing gets ~25 questions. Cache the image once, pay a fraction for the other 24."],
+  ["API features", "batch mode", "Batch mode", "Async jobs at half price.", "−50 %", "with any model", "use",
+    "Run the eval on all 4,270 PNG questions overnight for half the cost."],
+  ["API features", "code execution", "Code execution", "The model writes and runs Python.", "free · tokens only", "with any model", "use",
+    "Model reads the room corner coordinates and computes the area in Python, not in its head, so ±2 % holds."],
+  ["API features", "file search", "File Search", "Managed search over your own files.", "free · embeddings billed", "with any model", "",
+    "Search a whole project folder of PDFs. Overkill for one drawing per question."],
+  ["API features", "google search · maps · url context", "Search / Maps / URL grounding", "Answers from the web or maps.", "5,000 free/month, then $14 / 1,000", "with Gemini 3+", "",
+    "Look up a product spec online. Not wanted: answers must come from the drawing."],
+  ["API features", "deep-research · antigravity", "Deep Research / Antigravity", "Autonomous research and sandbox agents.", "model token prices", "preview", "",
+    "Writes a cited research report. Nothing to do with reading one plan."],
+];
+const GCOLS = [...new Set(GEM.map(g => g[0]))];
+document.getElementById("gemCols").innerHTML = GCOLS.map(c =>
+  `<div class="gcol"><span class="lbl">${c}</span>` + GEM.map((g, i) => g[0] !== c ? "" :
+    `<div class="gm ${g[6]}" tabindex="0" data-i="${i}"><b>${g[2]}</b><span class="id">${g[1]}</span><span class="dt">${g[3]}</span><span class="pr">${g[4]}</span></div>`).join("") + `</div>`).join("");
+const gem = document.getElementById("gem"), tip = document.getElementById("tip");
+function showTip(el, x, y) {
+  const g = GEM[el.dataset.i];
+  tip.innerHTML = `<b>${g[2]}</b>${g[3]}<div class="ex">${g[7]}</div><div class="meta">${g[4]} · ${g[5]}</div>`;
+  tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  tip.style.left = Math.max(8, Math.min(innerWidth - r.width - 8, x + 14)) + "px";
+  tip.style.top = (y + r.height + 24 > innerHeight ? y - r.height - 12 : y + 18) + "px";
+}
+document.querySelectorAll(".gm").forEach(el => {
+  el.addEventListener("mousemove", e => showTip(el, e.clientX, e.clientY));
+  el.addEventListener("mouseleave", () => tip.hidden = true);
+  el.addEventListener("focus", () => { const r = el.getBoundingClientRect(); showTip(el, r.left, r.bottom - 10); });
+  el.addEventListener("blur", () => tip.hidden = true);
+});
+const openGem = () => { gem.hidden = false; document.getElementById("gemClose").focus(); };
+const closeGem = () => { gem.hidden = true; tip.hidden = true; };
+document.getElementById("gemClose").onclick = closeGem;
+addEventListener("keydown", e => { if (e.key === "Escape" && !gem.hidden) closeGem(); });
+document.querySelectorAll("#sw .card").forEach(c => {
+  if (c.querySelector("b")?.textContent !== "Google DeepMind") return;
+  c.classList.add("open"); c.tabIndex = 0; c.setAttribute("role", "button");
+  c.insertAdjacentHTML("beforeend", `<span class="more">Click: all Gemini tools →</span>`);
+  c.onclick = openGem;
+  c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openGem(); } };
+});
+
 document.getElementById("hw").innerHTML = HW.map(([l, n, p, t, hot]) =>
   `<div class="card${hot ? " hot" : ""}${COULD_HW.has(n) ? " us could" : ""}">${img(l, n)}<b>${n}</b><p>${p}</p><span class="tag">${t}</span></div>`).join("");
 /* ---------- CREDITS (checked on the dashboards, Sat 14.11. ~09:15 Finland time) ----------
@@ -759,6 +945,8 @@ const CR = [
   ["Cloudinary · MongoDB", "Free tiers", "per account", 1, "0", "free tier", "Cloudinary prize needs the survey form", "out"],
   ["Google Flow (not sponsor)", "Own Google AI PLUS plan", "Handan's own", 1, "unknown – check dashboard", "250 credits · reset 29.11.", "Video/images for the pitch", "out"],
 ];
+const MEMBERS = ["Handan", "Wael", "Olaf", "Vlad"];
+const LEFT_PCT = {};   // e.g. LEFT_PCT["ElevenLabs"] = { Wael: 100 } once a teammate reports their balance
 const USED_PCT = {
   "Google Gemini · AI Studio": 100,   // 503/500 free requests today (resets daily)
   "Featherless": 0.018,               // $0.009 of $50
@@ -767,15 +955,27 @@ const USED_PCT = {
   "Cloudinary · MongoDB": 0,
   // unknown: OpenAI Codex (not redeemed yet), Google Flow (check dashboard)
 };
-document.getElementById("cr").innerHTML = `<table class="crt"><colgroup><col style="width:11%"><col style="width:17%"><col style="width:13%"><col style="width:7%"><col style="width:16%"><col style="width:11%"><col></colgroup><tr><th>Tool</th><th>Credit</th><th>Per person / team</th><th>Claimed by</th><th>Used</th><th>Left</th><th>Notes</th></tr>` +
+document.getElementById("cr").innerHTML = `<table class="crt"><colgroup><col style="width:11%"><col style="width:17%"><col style="width:13%"><col style="width:7%"><col style="width:16%"><col style="width:11%"><col></colgroup><tr><th>Tool</th><th>Credit</th><th>Per person / team</th><th>Claimed by</th><th>Left · per member</th><th>Left</th><th>Notes</th></tr>` +
   CR.map(([t, c, pp, who, used, left, note, cls]) => `<tr${cls ? ` class="${cls}"` : ""}><td>${t}</td><td>${c}</td><td class="pp">${pp}</td>` +
-    `<td>${who ? '<span class="who-ok">✓ Handan</span>' : '<span class="who-no">not yet</span>'}</td><td class="n">${bar(t, who)}${used}</td><td class="n left">${left}</td><td class="note">${note}</td></tr>`).join("") + `</table>`;
-/* share of the claimed credit already used (0–100); null = unknown / not claimed → dashed empty bar */
-function bar(tool, claimed) {
-  const pct = USED_PCT[tool];
-  if (!claimed || pct == null) return `<div class="barrow"><div class="bar na"></div><span class="barlbl" style="color:#999">${claimed ? "? used" : "not claimed"}</span></div>`;
-  const w = pct > 0 ? Math.max(2, Math.min(100, pct)) : 0;
-  return `<div class="barrow"><div class="bar${pct >= 100 ? " full" : ""}"><i style="width:${w}%"></i></div><span class="barlbl"${pct >= 100 ? " style=\"color:#DC2626\"" : ""}>${pct >= 100 ? "100 % · limit" : (pct < 1 && pct > 0 ? "< 1 %" : Math.round(pct) + " %") + " used"}</span></div>`;
+    `<td>${who ? '<span class="who-ok">✓ Handan</span>' : '<span class="who-no">not yet</span>'}</td><td class="n">${bars(t, pp, who)}${used === "—" ? "" : used}</td><td class="n left">${left}</td><td class="note">${note}</td></tr>`).join("") + `</table>`;
+/* Remaining credit per member as bars (full black = all left). Per person/account tools get one bar per teammate,
+   per team tools one bar. Only Handan's accounts are known; teammates show a dashed "?" until they report. */
+function one(pct, name) {
+  const lbl = `<b>${name}<em>${pct == null ? "?" : Math.round(pct) + "%"}</em></b>`;
+  if (pct == null) return `<span>${lbl}<div class="bar na"></div></span>`;
+  const w = pct > 0 ? Math.max(3, Math.min(100, pct)) : 0;
+  return `<span>${lbl}<div class="bar${pct <= 0 ? " zero" : ""}"><i style="width:${w}%"></i></div></span>`;
+}
+function leftFor(tool, member, claimedByHandan) {
+  const own = (LEFT_PCT[tool] || {})[member];
+  if (own != null) return own;
+  if (member === "Handan" && claimedByHandan && USED_PCT[tool] != null) return Math.max(0, 100 - USED_PCT[tool]);
+  return null;
+}
+function bars(tool, pp, claimed) {
+  if (/person|account/.test(pp) && !/Handan's own/.test(pp))
+    return `<div class="mb">${MEMBERS.map(m => one(leftFor(tool, m, claimed), m[0])).join("")}</div>`;
+  return `<div class="mb">${one(leftFor(tool, "Handan", claimed), /own/.test(pp) ? "Handan" : "Team")}</div>`;
 }
 const FOOT = {
   sw: "<span class='setup-key' style='border-color:#7C3AED'></span>Purple frame / ✓ set up = account/credits done · <span class='setup-key' style='border-color:#DC2626'></span>red frame / ⏳ open = still to set up · Green ★ = in use now (Gemini vision, Gemma via Featherless, Codex, Claude for building) · dashed ☆ = one step away (Modal demo URL, CRACI CI, ElevenLabs voice, Nemotron waits for NVIDIA key) · big text = free for every participant · thick border = there's also a prize for using it · redeem on the Junction Platform → Hackerpacks.",
