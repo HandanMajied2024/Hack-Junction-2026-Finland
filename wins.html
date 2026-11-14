@@ -951,7 +951,7 @@ document.getElementById("hw").innerHTML = HW.map(([l, n, p, t, hot]) =>
 /* ---------- CREDITS (checked on the dashboards, Sat 14.11. ~09:15 Finland time) ----------
    [tool, credit, per person/team, claimed (1 = Handan), used, left, notes, row class] · no codes/links here, repo is public */
 const CR = [
-  ["Google Gemini · AI Studio", "Free tier: Flash Lite 500 req/day, 3.6 Flash 20/day · + team credits (form)", "free tier per Google account · credits per team", 1, "503/500 Flash Lite · 25/20 3.6 Flash today · €0 billed", "0 today → resets daily 10:00 Finland", "Limit hit overnight. Teammates can make their own free-tier key = +500/day each. Team-credit key requested, not arrived yet", "hit"],
+  ["Google Gemini · AI Studio", "Free tier: Flash Lite 500 req/day, 3.6 Flash 20/day · + team credits (form)", "free tier per Google account · credits per team", 1, "Reset ✓ · 1/500 Flash Lite used today (11:08) · €0 billed", "~499 req today · resets daily ~10:00 Finland", "Limit was hit overnight, reset worked. Teammates can make their own free-tier key = +500/day each. Team-credit key requested, not arrived yet", "ok"],
   ["Featherless", "$50 API voucher", "per account", 1, "$0.009 · 46 requests (Gemma 4 31B)", "$49.99", "Both $25 halves arrived. ~5,000 Gemma calls left at this rate"],
   ["Modal", "$100 / person, 1 year", "per person", 1, "$0.00", "$100.00", "Nothing deployed yet (demo URL = Modal prize)"],
   ["Exa", "$50 / person (+$10/mo free)", "per person", 1, "$0.00", "$70.00", "Not in our code"],
@@ -971,7 +971,7 @@ const CR = [
 const MEMBERS = ["Handan", "Wael", "Olaf", "Vlad"];
 const LEFT_PCT = {};   // e.g. LEFT_PCT["ElevenLabs"] = { Wael: 100 } once a teammate reports their balance
 const USED_PCT = {
-  "Google Gemini · AI Studio": 100,   // 503/500 free requests today (resets daily)
+  "Google Gemini · AI Studio": 0.2,   // 1/500 after the daily reset (checked 11:08 Finland)
   "Featherless": 0.018,               // $0.009 of $50
   "Modal": 0, "Exa": 0, "Context.dev": 0, "Aiven": 0,
   "ElevenLabs": 0,                    // 0 of 10,000 credits
