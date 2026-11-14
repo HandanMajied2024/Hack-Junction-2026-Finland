@@ -101,6 +101,23 @@
   .meter.na { border:1.5px dashed #aaa; }
   .meter.na span { color:#999; font-weight:700; mix-blend-mode:normal; }
   .setup-key { display:inline-block; width:14px; height:9px; border:3px solid; vertical-align:-1px; margin:0 4px 0 2px; }
+  /* Progress: each box fills from the bottom like a glass */
+  #progress { gap:8px; }
+  .pg { flex:1; min-height:0; display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); grid-auto-rows:1fr; gap:8px; }
+  .gl { position:relative; border:1.5px solid #000; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; padding:8px 10px; min-height:0; }
+  .gl .fill { position:absolute; left:0; right:0; bottom:0; background:#BBF7D0; z-index:0; }
+  .gl.done .fill { background:#86EFAC; }
+  .gl > *:not(.fill) { position:relative; z-index:1; }
+  .gl .pct { font-size:clamp(18px, 2.2vw, 34px); font-weight:900; letter-spacing:-.03em; line-height:1; }
+  .gl b { display:block; font-size:clamp(12px, 1.05vw, 16px); font-weight:900; line-height:1.15; }
+  .gl p { font-size:clamp(10px, .78vw, 12px); line-height:1.3; color:#222; margin-top:3px; }
+  .gl .who { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:#444; }
+  .gl.req::after { content:"must"; position:absolute; top:6px; right:8px; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:.06em; z-index:1; }
+  .pgsum { display:flex; align-items:center; gap:14px; font-size:12px; color:var(--mute); flex-wrap:wrap; }
+  .pgsum b { color:#000; font-size:16px; }
+  .pgbar { flex:1; min-width:160px; height:10px; border:1.5px solid #000; position:relative; }
+  .pgbar i { position:absolute; left:0; top:0; bottom:0; background:#86EFAC; }
+
   /* Credits */
   #cr { flex:1; min-height:0; overflow:hidden; }
   .crt { width:100%; table-layout:fixed; border-collapse:collapse; font-size:clamp(9px, .74vw, 12px); line-height:1.22; }
@@ -282,6 +299,7 @@
     <button class="tab" data-view="tools" aria-selected="false">Tools</button>
     <button class="tab" data-view="route" aria-selected="false">Route</button>
     <button class="tab" data-view="challenge" aria-selected="false">Challenge</button>
+    <button class="tab" data-view="progress" aria-selected="false">Progress</button>
   </div>
   <span class="sep"></span>
   <div class="tabs" id="subWins">
@@ -555,6 +573,11 @@ data/ stays out: 10 GB, partly NonCommercial</pre>
         </ul>
       </div>
     </div>
+  </section>
+
+  <section class="view" id="progress">
+    <div class="pgsum" id="pgsum"></div>
+    <div class="pg" id="pg"></div>
   </section>
 
   <section class="view" id="tools">
@@ -984,6 +1007,35 @@ const FOOT = {
 };
 
 /* ---------- TABS ---------- */
+/* ---------- PROGRESS (Sat 14.11. ~10:30 Finland) · edit pct when something moves ----------
+   [title, pct done, what's done / what's missing, owner, required for the submission?] */
+const PG = [
+  ["Prototype", 85, "stoa-takeoff (Olaf) runs: CAD 99.3 %, BIM 99.5 %, scans 78.7 %, chat with trace, 3D, review loop. Missing: PDF schedules (opening_design)", "Olaf · team", 1],
+  ["Pitch video ≤ 2 min", 65, "Draft rendered (white Apple look, hands + real app screens). Missing: script OK → real voice, Flow animations, final render", "Handan", 1],
+  ["Voice-over", 15, "Script written (258 words, 11 scenes) and waiting for approval. Missing: ElevenLabs voice or a teammate's recording", "Handan · Business", 1],
+  ["Video online (public)", 0, "Upload to YouTube or Loom as public/unlisted, link into the form", "Handan", 1],
+  ["Source code link", 70, "stoa-takeoff is public on GitHub. Missing: MIT LICENSE file, final README, pitch branch merged", "Olaf", 1],
+  ["MIT licence", 0, "Add a LICENSE file (MIT) to the repo", "Olaf", 1],
+  ["Demo link", 60, "Vercel demo mode built (22 drawings, no dataset needed). Missing: confirm live URL works for judges", "Olaf", 1],
+  ["Pitch deck (PDF)", 0, "Slides: problem, how it works, numbers, cost, team. Can reuse the video's frames", "Business", 1],
+  ["Form texts", 30, "Draft 'InternetMoney' exists with challenge + punchline. Missing: name, description, tech stack", "Wael", 1],
+  ["Tech challenges", 25, "Tick + explain each one used (e.g. Codex, Gemma via Featherless, Gemini). Must match what the final code really uses", "Handan", 0],
+  ["Team data", 50, "Team contact number set. Missing: all phone numbers + Discord names, table A76 in the form", "Wael", 1],
+  ["GitHub org", 0, "Wael asked for one org for all repos (create on github.com/organizations/plan)", "Handan · Vlad", 0],
+  ["Questions to Stoa", 0, "Ask at the booth (3rd floor): separate test set? cost per question incl. preprocessing?", "Wael", 0],
+  ["Set FINAL", 0, "Switch DRAFT → FINAL before Sun 10:00 Finland time (edits stay possible until then)", "1 person", 1],
+  ["Peer review", 0, "Sun 10:30–13:00 · all 4 must be there, otherwise no main prize", "everyone", 1],
+];
+function renderProgress() {
+  document.getElementById("pg").innerHTML = PG.map(([t, p, d, who, req]) =>
+    `<div class="gl${p >= 100 ? " done" : ""}${req ? " req" : ""}"><div class="fill" style="height:${p}%"></div>` +
+    `<div><div class="pct">${p}%</div><b>${t}</b><p>${d}</p></div><div class="who">${who}</div></div>`).join("");
+  const must = PG.filter(x => x[4]), avg = Math.round(must.reduce((a, x) => a + x[1], 0) / must.length);
+  document.getElementById("pgsum").innerHTML = `<span><b>${avg}%</b> of the required deliverables done</span>` +
+    `<div class="pgbar"><i style="width:${avg}%"></i></div><span>Final submission <b style="font-size:13px">Sun 10:00 Finland</b> (laptop 09:00) · "must" = required for the main prize</span>`;
+}
+renderProgress();
+
 const state = { view: "wins", wins: "main", tools: "sw", ch: "problem" };
 function render() {
   document.querySelectorAll("[data-view]").forEach(b => b.setAttribute("aria-selected", b.dataset.view === state.view));
