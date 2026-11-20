@@ -3,3 +3,12 @@
 .env.*
 node_modules/
 __pycache__/
+.playwright-mcp/
+*.local.md
+data/
+drawingsense/
+junction-kb/
+stoa-takeoff/
+.claude/settings.local.json
+*.local.*
+stoa-*/
